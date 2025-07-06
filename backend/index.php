@@ -3,7 +3,7 @@
 * Routes API requests to appropriate endpoints
  */
 
-// Enable error reporting for development (disable in production)
+// Enable error reporting for development (will disable in production)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 

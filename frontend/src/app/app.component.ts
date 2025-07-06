@@ -17,11 +17,11 @@ import { Component } from '@angular/core';
           </div>
           
           <div class="nav-links">
-            <a href="#" class="nav-link active">
+            <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
               <span class="link-icon">📋</span>
               Reservations
             </a>
-            <a href="#" class="nav-link">
+            <a routerLink="/add-reservation" class="nav-link" routerLinkActive="active">
               <span class="link-icon">➕</span>
               Add New
             </a>
@@ -35,7 +35,7 @@ import { Component } from '@angular/core';
 
       <!-- Main Content Area -->
       <main class="main-content">
-        <app-reservation-list></app-reservation-list>
+        <router-outlet></router-outlet>
       </main>
 
       <!-- Footer -->

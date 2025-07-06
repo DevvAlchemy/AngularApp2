@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ReservationListComponent } from './components/reservation-list.component';
+import { ReservationFormComponent } from './components/reservation-form.component';
 
 /**
  * Main application module
@@ -14,7 +15,8 @@ import { ReservationListComponent } from './components/reservation-list.componen
 @NgModule({
   declarations: [
     AppComponent,                    // Main app component
-    ReservationListComponent         // Reservation list component
+    ReservationListComponent,        // Reservation list component
+    ReservationFormComponent         // Add reservation form component
   ],
   imports: [
     BrowserModule,                   // Required for running in browser
