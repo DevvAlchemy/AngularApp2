@@ -47,14 +47,16 @@ export class ReservationService {
    * @param reservation New reservation data
    * @returns Observable<any> Success/error response
    */
-  createReservation(reservation: NewReservation): Observable<any> {
-    const headers = { 'Content-Type': 'application/json' };
-    
-    return this.http.post(this.apiUrl, reservation, { headers })
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
+  /**
+ * Create a new reservation (simple version)
+ */
+createReservation(reservation: NewReservation): Observable<any> {
+  const headers = { 'Content-Type': 'application/json' };
+  return this.http.post('http://localhost/AngularApp2/backend/create_reservation.php', reservation, { headers })
+    .pipe(
+      catchError(this.handleError)
+    );
+}
 
   /**
    * Handle HTTP errors
