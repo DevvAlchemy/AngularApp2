@@ -20,8 +20,8 @@
   font-weight: 700;
   margin-bottom: 10px;
   background: linear-gradient(135deg, #58a6ff, #a5f3fc, #34d399);
-  background-clip: text;
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 0 30px rgba(88, 166, 255, 0.3);
   animation: glow 2s ease-in-out infinite alternate;
@@ -151,6 +151,36 @@
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.edit-btn {
+  background: rgba(88, 166, 255, 0.2);
+  color: #58a6ff;
+}
+
+.delete-btn {
+  background: rgba(248, 81, 73, 0.2);
+  color: #f85149;
 }
 
 /* Loading and Error States */
@@ -367,6 +397,41 @@
   background: rgba(248, 81, 73, 0.2);
   color: #f85149;
   border: 1px solid rgba(248, 81, 73, 0.3);
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 10px;
+}
+
+.action-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.edit-btn {
+  background: rgba(88, 166, 255, 0.2);
+  color: #58a6ff;
+}
+
+.edit-btn:hover {
+  background: rgba(88, 166, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.delete-btn {
+  background: rgba(248, 81, 73, 0.2);
+  color: #f85149;
+}
+
+.delete-btn:hover {
+  background: rgba(248, 81, 73, 0.3);
+  transform: translateY(-1px);
 }
 
 /* Card Body */

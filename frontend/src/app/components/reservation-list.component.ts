@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ReservationService } from '../services/reservation.service';
 import { Reservation } from '../models/reservation.model';
+import { Router } from '@angular/router';
 
 /**
  * Component for displaying list of reservations
@@ -84,8 +85,19 @@ import { Reservation } from '../models/reservation.model';
               <h3 class="customer-name">{{ reservation.customer_name }}</h3>
               <p class="customer-email">{{ reservation.customer_email }}</p>
             </div>
-            <div class="status-badge" [ngClass]="reservation.status">
-              {{ reservation.status | titlecase }}
+            <div class="header-actions">
+              <div class="status-badge" [ngClass]="reservation.status">
+                {{ reservation.status | titlecase }}
+              </div>
+              <!-- Edit/Delete Buttons -->
+              <div class="card-actions">
+                <button (click)="editReservation(reservation)" class="action-btn edit-btn" title="Edit">
+                  ✏️
+                </button>
+                <button (click)="deleteReservation(reservation)" class="action-btn delete-btn" title="Delete">
+                  🗑️
+                </button>
+              </div>
             </div>
           </div>
 
@@ -174,7 +186,11 @@ export class ReservationListComponent implements OnInit {
   searchTerm = '';
   statusFilter = '';
 
-  constructor(private reservationService: ReservationService) { }
+  // FIXED CONSTRUCTOR - proper syntax
+  constructor(
+    private reservationService: ReservationService,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
     this.loadReservations();
@@ -215,6 +231,44 @@ export class ReservationListComponent implements OnInit {
       
       return matchesSearch && matchesStatus;
     });
+  }
+
+  /**
+   * Edit reservation - navigate to form with data
+   */
+  editReservation(reservation: any): void {
+    this.router.navigate(['/add-reservation'], { 
+      queryParams: { 
+        id: reservation.id,
+        edit: 'true'
+      }
+    });
+  }
+
+  /**
+   * Delete reservation with confirmation
+   */
+  deleteReservation(reservation: any): void {
+    const confirmed = confirm(
+      `Are you sure you want to delete the reservation for ${reservation.customer_name}?\n\n` +
+      `Date: ${reservation.reservation_date}\n` +
+      `Time: ${reservation.reservation_time}\n` +
+      `Party: ${reservation.party_size} people\n\n` +
+      `This action cannot be undone.`
+    );
+
+    if (confirmed) {
+      this.reservationService.deleteReservation(reservation.id).subscribe({
+        next: () => {
+          console.log('Reservation deleted successfully');
+          this.loadReservations();
+        },
+        error: (error) => {
+          console.error('Error deleting reservation:', error);
+          alert('Failed to delete reservation. Please try again.');
+        }
+      });
+    }
   }
 
   /**

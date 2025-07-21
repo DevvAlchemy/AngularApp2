@@ -34,22 +34,48 @@ export class ReservationService {
    * @param id Reservation ID
    * @returns Observable<Reservation> Single reservation object
    */
-  getReservationById(id: number): Observable<Reservation> {
-    return this.http.get<Reservation>(`${this.apiUrl}?id=${id}`)
-      .pipe(
-        retry(2),
-        catchError(this.handleError)
-      );
-  }
-
   /**
-   * Create a new reservation
-   * @param reservation New reservation data
-   * @returns Observable<any> Success/error response
-   */
-  /**
- * Create a new reservation (simple version)
+ * Get single reservation by ID
  */
+/**
+ * Get single reservation by ID
+ */
+getReservationById(id: number): Observable<any> {
+  const getUrl = 'http://localhost/AngularApp2/backend/get_reservation.php';
+  return this.http.get(`${getUrl}?id=${id}`)
+    .pipe(
+      catchError(this.handleError)
+    );
+}
+
+/**
+ * Update existing reservation
+ */
+updateReservation(id: number, reservation: NewReservation): Observable<any> {
+  const updateUrl = 'http://localhost/AngularApp2/backend/update_reservation.php';
+  const headers = { 'Content-Type': 'application/json' };
+  
+  const data = { ...reservation, id: id };
+  
+  return this.http.put(updateUrl, data, { headers })
+    .pipe(
+      catchError(this.handleError)
+    );
+}
+
+/**
+ * Delete a reservation
+ */
+deleteReservation(id: number): Observable<any> {
+  const deleteUrl = 'http://localhost/AngularApp2/backend/delete_reservation.php';
+  return this.http.delete(`${deleteUrl}?id=${id}`)
+    .pipe(
+      catchError(this.handleError)
+    );
+}
+ 
+ // Create a new reservation (simple version)
+
 createReservation(reservation: NewReservation): Observable<any> {
   const headers = { 'Content-Type': 'application/json' };
   return this.http.post('http://localhost/AngularApp2/backend/create_reservation.php', reservation, { headers })
@@ -123,3 +149,16 @@ createReservation(reservation: NewReservation): Observable<any> {
     });
   }
 }
+
+/**
+ * Delete a reservation (add to your existing service)
+ * @param id Reservation ID to delete
+ * @returns Observable<any> Success/error response
+ */
+// deleteReservation(id: number): Observable<any> {
+//   const deleteUrl = 'http://localhost/AngularApp2/backend/delete_reservation.php';
+//   return this.http.delete(`${deleteUrl}?id=${id}`)
+//     .pipe(
+//       catchError(this.handleError)
+//     );
+// }

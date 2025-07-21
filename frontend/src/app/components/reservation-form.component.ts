@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ReservationService } from '../services/reservation.service';
 import { NewReservation } from '../models/reservation.model';
 
@@ -250,7 +250,9 @@ export class ReservationFormComponent {
   
   loading = false;
   errorMessage = '';
-  
+   isEditMode = false;
+  reservationId: number | null = null;
+   
   // Simple form data
   formData = {
     customer_name: '',
@@ -263,34 +265,91 @@ export class ReservationFormComponent {
     status: 'pending'
   };
 
+  
   constructor(
     private router: Router,
+      private route: ActivatedRoute,
     private reservationService: ReservationService
   ) {}
 
   /**
    * Handle form submission
    */
-  onSubmit(): void {
+  ngOnInit(): void {
+    // Check if we're in edit mode
+    this.route.queryParams.subscribe((params: { [x: string]: string | number; }) => {
+      if (params['edit'] === 'true' && params['id']) {
+        this.isEditMode = true;
+        this.reservationId = +params['id'];
+        this.loadReservationForEdit(this.reservationId);
+      }
+    });
+  }
+
+  // Add this method to load reservation data
+  loadReservationForEdit(id: number): void {
     this.loading = true;
-    this.errorMessage = '';
+    
+    this.reservationService.getReservationById(id).subscribe({
+      next: (reservation) => {
+        // Populate form with existing data
+        this.formData = {
+          customer_name: reservation.customer_name,
+          customer_email: reservation.customer_email,
+          customer_phone: reservation.customer_phone || '',
+          reservation_date: reservation.reservation_date,
+          reservation_time: reservation.reservation_time,
+          party_size: reservation.party_size.toString(),
+          special_requests: reservation.special_requests || '',
+          status: reservation.status
+        };
+        this.loading = false;
+      },
+      error: (error) => {
+        this.loading = false;
+        this.errorMessage = 'Failed to load reservation';
+        console.error('Error loading reservation:', error);
+      }
+    });
+  }
 
-    const newReservation: NewReservation = {
-      customer_name: this.formData.customer_name,
-      customer_email: this.formData.customer_email,
-      customer_phone: this.formData.customer_phone || '',
-      reservation_date: this.formData.reservation_date,
-      reservation_time: this.formData.reservation_time,
-      party_size: Number(this.formData.party_size),
-      special_requests: this.formData.special_requests || '',
-       status: (this.formData.status as 'pending' | 'confirmed' | 'cancelled' | undefined) || 'pending'
-    };
+  // Update your existing onSubmit method
+  onSubmit(): void {
+  this.loading = true;
+  this.errorMessage = '';
 
-    this.reservationService.createReservation(newReservation).subscribe({
+  // Create properly typed reservation data
+  const reservationData: NewReservation = {
+    customer_name: this.formData.customer_name,
+    customer_email: this.formData.customer_email,
+    customer_phone: this.formData.customer_phone || '',
+    reservation_date: this.formData.reservation_date,
+    reservation_time: this.formData.reservation_time,
+    party_size: Number(this.formData.party_size),
+    special_requests: this.formData.special_requests || '',
+    status: this.formData.status as 'pending' | 'confirmed' | 'cancelled'
+  };
+
+  if (this.isEditMode && this.reservationId) {
+    // Update existing reservation
+    this.reservationService.updateReservation(this.reservationId, reservationData).subscribe({
+      next: (response) => {
+        this.loading = false;
+        console.log('Reservation updated successfully:', response);
+        this.router.navigate(['/']);
+      },
+      error: (error) => {
+        this.loading = false;
+        this.errorMessage = error.message || 'Failed to update reservation';
+        console.error('Error updating reservation:', error);
+      }
+    });
+  } else {
+    // Create new reservation
+    this.reservationService.createReservation(reservationData).subscribe({
       next: (response) => {
         this.loading = false;
         console.log('Reservation created successfully:', response);
-        // Navigate back to list
         this.router.navigate(['/']);
       },
       error: (error) => {
@@ -300,10 +359,10 @@ export class ReservationFormComponent {
       }
     });
   }
+}
 
-  /**
-   * Reset form
-   */
+   // Reset form
+  
   resetForm(): void {
     this.formData = {
       customer_name: '',
