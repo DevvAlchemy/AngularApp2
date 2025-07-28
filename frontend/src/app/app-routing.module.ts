@@ -1,25 +1,34 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { LoginComponent } from './components/login.component';
+import { SignupComponent } from './components/signup.component';
 import { ReservationListComponent } from './components/reservation-list.component';
 import { ReservationFormComponent } from './components/reservation-form.component';
+import { AuthGuard } from './guards/auth.guard';
 
 /**
- * Application routing configuration
- * Defines which component loads for each URL path
+ * Application routing configuration with authentication
  */
 const routes: Routes = [
+  // Public routes
+  { path: 'login', component: LoginComponent },
+  { path: 'signup', component: SignupComponent },
+  
+  // Protected routes (require authentication)
   { 
-    path: '', 
-    component: ReservationListComponent
+    path: 'dashboard', 
+    component: ReservationListComponent,
+    canActivate: [AuthGuard]
   },
   { 
     path: 'add-reservation', 
-    component: ReservationFormComponent
+    component: ReservationFormComponent,
+    canActivate: [AuthGuard]
   },
-  { 
-    path: '**', 
-    redirectTo: '' 
-  } // Wildcard route - redirect any unknown paths to home
+  
+  // Redirect routes
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '**', redirectTo: '/login' }
 ];
 
 @NgModule({
