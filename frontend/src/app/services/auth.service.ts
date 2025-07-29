@@ -35,8 +35,7 @@ export interface AuthResponse {
 }
 
 /**
- * ULTRA MINIMAL AuthService - Does NOTHING automatically
- * This will help us identify if AuthService is causing the redirect
+ * Final Auth Service - Proper session management without auto-logout
  */
 @Injectable({
   providedIn: 'root'
@@ -44,7 +43,7 @@ export interface AuthResponse {
 export class AuthService {
   private apiUrl = 'http://localhost/AngularApp2/backend/api/auth.php';
   
-  // Basic state - NO AUTOMATIC INITIALIZATION
+  // Auth state management
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
   
@@ -55,32 +54,83 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    console.log('🔥 ULTRA MINIMAL AuthService constructor');
-    console.log('🚫 NO AUTOMATIC ACTIONS WILL BE TAKEN');
-    console.log('⚠️ This service will do NOTHING unless explicitly called');
-    
-    // ABSOLUTELY NO AUTOMATIC SESSION CHECKING
-    // ABSOLUTELY NO AUTOMATIC REDIRECTS
-    // ABSOLUTELY NO AUTOMATIC STATE CHANGES
+    console.log('🔧 AuthService initialized');
+    // Check for existing session without redirecting
+    this.initializeAuth();
+  }
+
+  /**
+   * Initialize authentication state
+   */
+  private initializeAuth(): void {
+    const token = this.getToken();
+    const userData = this.getUserData();
+
+    if (token && userData) {
+      console.log('🔍 Found existing session, verifying...');
+      // Set initial state based on stored data
+      this.currentUserSubject.next(userData);
+      this.isAuthenticatedSubject.next(true);
+      
+      // Verify in background without affecting navigation
+      this.verifySessionQuietly();
+    } else {
+      console.log('ℹ️ No existing session found');
+    }
+  }
+
+  /**
+   * Verify session quietly without redirects
+   */
+  private verifySessionQuietly(): void {
+    const token = this.getToken();
+    if (!token) return;
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    this.http.get(`${this.apiUrl}?action=verify`, { headers })
+      .pipe(
+        catchError(() => {
+          // If verification fails, clear session quietly
+          console.log('🔄 Session verification failed, clearing session');
+          this.clearSession();
+          return of({ valid: false });
+        })
+      )
+      .subscribe(response => {
+        if (response && (response as any).valid) {
+          console.log('✅ Session verified successfully');
+          this.currentUserSubject.next((response as any).user);
+          this.isAuthenticatedSubject.next(true);
+        } else {
+          console.log('❌ Session invalid, clearing');
+          this.clearSession();
+        }
+      });
   }
 
   /**
    * User login
    */
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    console.log('🔐 LOGIN CALLED for:', credentials.username);
+    console.log('🔐 Attempting login for:', credentials.username);
     
     return this.http.post<AuthResponse>(`${this.apiUrl}?action=login`, credentials)
       .pipe(
         tap(response => {
-          console.log('✅ LOGIN SUCCESS:', response);
+          console.log('✅ Login successful:', response);
+          
+          // Store token and user data
           localStorage.setItem('auth_token', response.token);
           localStorage.setItem('user_data', JSON.stringify(response.user));
+          
+          // Update subjects
           this.currentUserSubject.next(response.user);
           this.isAuthenticatedSubject.next(true);
         }),
         catchError(error => {
-          console.error('❌ LOGIN ERROR:', error);
+          console.error('❌ Login error:', error);
+          this.clearSession();
           throw error;
         })
       );
@@ -90,15 +140,15 @@ export class AuthService {
    * User signup
    */
   signup(userData: SignupRequest): Observable<any> {
-    console.log('📝 SIGNUP CALLED for:', userData.username);
+    console.log('📝 Attempting signup for:', userData.username);
     
     return this.http.post(`${this.apiUrl}?action=signup`, userData)
       .pipe(
         tap(response => {
-          console.log('✅ SIGNUP SUCCESS:', response);
+          console.log('✅ Signup successful:', response);
         }),
         catchError(error => {
-          console.error('❌ SIGNUP ERROR:', error);
+          console.error('❌ Signup error:', error);
           throw error;
         })
       );
@@ -108,7 +158,8 @@ export class AuthService {
    * User logout
    */
   logout(): Observable<any> {
-    console.log('🚪 LOGOUT CALLED');
+    console.log('🚪 Logging out...');
+    
     const token = this.getToken();
     
     if (!token) {
@@ -117,12 +168,49 @@ export class AuthService {
     }
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
     return this.http.post(`${this.apiUrl}?action=logout`, {}, { headers })
       .pipe(
-        tap(() => this.clearSession()),
-        catchError(() => {
-          this.clearSession();
+        tap(() => {
+          console.log('✅ Logout successful');
+        }),
+        catchError(error => {
+          console.log('⚠️ Logout error, clearing local session anyway');
           return of({ message: 'Logged out locally' });
+        }),
+        tap(() => {
+          this.clearSession();
+        })
+      );
+  }
+
+  /**
+   * Verify current session (manual call)
+   */
+  verifySession(): Observable<any> {
+    const token = this.getToken();
+    if (!token) {
+      return of({ valid: false, message: 'No token' });
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    return this.http.get(`${this.apiUrl}?action=verify`, { headers })
+      .pipe(
+        tap(response => {
+          if (response && (response as any).valid) {
+            this.currentUserSubject.next((response as any).user);
+            this.isAuthenticatedSubject.next(true);
+            console.log('✅ Session verified');
+          } else {
+            console.log('❌ Session invalid');
+            this.clearSession();
+          }
+        }),
+        catchError(error => {
+          console.log('❌ Session verification failed:', error);
+          this.clearSession();
+          return of({ valid: false, message: 'Verification failed' });
         })
       );
   }
@@ -131,11 +219,11 @@ export class AuthService {
    * Clear session data
    */
   private clearSession(): void {
-    console.log('🧹 CLEARING SESSION');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_data');
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
+    console.log('🧹 Session cleared');
   }
 
   /**
@@ -179,7 +267,7 @@ export class AuthService {
    * Navigate to login page
    */
   redirectToLogin(): void {
-    console.log('🔄 REDIRECT TO LOGIN CALLED');
+    console.log('🔄 Redirecting to login');
     this.router.navigate(['/login']);
   }
 
@@ -187,7 +275,7 @@ export class AuthService {
    * Navigate to dashboard
    */
   redirectToDashboard(): void {
-    console.log('🔄 REDIRECT TO DASHBOARD CALLED');
+    console.log('🔄 Redirecting to dashboard');
     this.router.navigate(['/dashboard']);
   }
 }

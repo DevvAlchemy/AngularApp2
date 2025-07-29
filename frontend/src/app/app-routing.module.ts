@@ -7,7 +7,7 @@ import { ReservationFormComponent } from './components/reservation-form.componen
 import { AuthGuard } from './guards/auth.guard';
 
 /**
- * RESTORED: Proper routing with AuthGuard for protected routes
+ * FIXED: Proper routing with dashboard as main protected route
  */
 const routes: Routes = [
   // Public routes - NO AUTH GUARD
@@ -30,39 +30,27 @@ const routes: Routes = [
     data: { title: 'Dashboard' }
   },
   { 
-    path: 'reservations', 
-    component: ReservationListComponent,
-    canActivate: [AuthGuard],
-    data: { title: 'Reservations' }
-  },
-  { 
     path: 'add-reservation', 
     component: ReservationFormComponent,
     canActivate: [AuthGuard],
     data: { title: 'Add Reservation' }
   },
-  { 
-    path: 'edit-reservation', 
-    component: ReservationFormComponent,
-    canActivate: [AuthGuard],
-    data: { title: 'Edit Reservation' }
-  },
   
-  // Default redirects
+  // IMPORTANT: Redirect authenticated users to dashboard, not login
   { 
     path: '', 
-    redirectTo: '/login', 
+    redirectTo: '/dashboard', 
     pathMatch: 'full' 
   },
   { 
     path: '**', 
-    redirectTo: '/login' 
+    redirectTo: '/dashboard' 
   }
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
-    enableTracing: false, // Disable for production
+    enableTracing: false,
     onSameUrlNavigation: 'reload'
   })],
   exports: [RouterModule]

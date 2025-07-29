@@ -5,7 +5,7 @@ import { Reservation } from '../models/reservation.model';
 import { Router } from '@angular/router';
 
 /**
- * Enhanced Reservation List Component with Navigation
+ * Fixed Reservation List Component - Properly Styled Navigation
  */
 @Component({
   selector: 'app-reservation-list',
@@ -220,6 +220,239 @@ import { Router } from '@angular/router';
       </div>
     </div>
   `,
+  styles: [`
+    /* TOP NAVIGATION STYLES */
+    .top-navigation {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: rgba(33, 38, 45, 0.95);
+      border-bottom: 2px solid rgba(88, 166, 255, 0.2);
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-left .app-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #e6edf3;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+    }
+
+    .nav-left .icon {
+      font-size: 1.8rem;
+      animation: bounce 2s infinite;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-info {
+      color: #8b949e;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #f85149, #da3633);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    .logout-btn:hover {
+      background: linear-gradient(135deg, #da3633, #f85149);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(248, 81, 73, 0.3);
+    }
+
+    .logout-btn .btn-icon {
+      font-size: 1rem;
+    }
+
+    /* HEADER SECTION STYLES */
+    .header-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: rgba(33, 38, 45, 0.5);
+      border-radius: 15px;
+      border: 1px solid rgba(88, 166, 255, 0.2);
+    }
+
+    .header-content {
+      flex: 1;
+    }
+
+    .header-content .main-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #58a6ff, #a5f3fc, #34d399);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-content .subtitle {
+      color: #8b949e;
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .create-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 25px;
+      background: linear-gradient(135deg, #238636, #2ea043);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1rem;
+      box-shadow: 0 4px 15px rgba(46, 160, 67, 0.2);
+    }
+
+    .create-btn:hover {
+      background: linear-gradient(135deg, #2ea043, #238636);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(46, 160, 67, 0.4);
+    }
+
+    .create-btn .btn-icon {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .create-btn-large {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 30px;
+      background: linear-gradient(135deg, #238636, #2ea043);
+      border: none;
+      border-radius: 15px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1.1rem;
+      margin-top: 20px;
+      box-shadow: 0 6px 20px rgba(46, 160, 67, 0.3);
+    }
+
+    .create-btn-large:hover {
+      background: linear-gradient(135deg, #2ea043, #238636);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(46, 160, 67, 0.5);
+    }
+
+    /* QUICK ACTIONS STYLES */
+    .quick-actions {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 30px 0;
+      border-top: 1px solid rgba(139, 148, 158, 0.2);
+      margin-top: 40px;
+    }
+
+    .quick-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 24px;
+      background: rgba(88, 166, 255, 0.1);
+      border: 2px solid rgba(88, 166, 255, 0.3);
+      border-radius: 10px;
+      color: #58a6ff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+    }
+
+    .quick-action-btn:hover {
+      background: rgba(88, 166, 255, 0.2);
+      border-color: #58a6ff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(88, 166, 255, 0.2);
+    }
+
+    .quick-action-btn .btn-icon {
+      font-size: 1.1rem;
+    }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 768px) {
+      .top-navigation {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+
+      .nav-right {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .header-section {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+      }
+
+      .header-content .main-title {
+        font-size: 1.5rem;
+        justify-content: center;
+      }
+
+      .quick-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .create-btn,
+      .logout-btn {
+        padding: 12px 18px;
+        font-size: 0.9rem;
+      }
+
+      .user-info {
+        font-size: 0.8rem;
+      }
+    }
+  `],
   styleUrls: ['./reservation-list.component.css']
 })
 export class ReservationListComponent implements OnInit {
@@ -334,15 +567,18 @@ export class ReservationListComponent implements OnInit {
    * Logout user
    */
   logout(): void {
-    this.authService.logout().subscribe({
-      next: () => {
-        this.router.navigate(['/login']);
-      },
-      error: () => {
-        // Even if logout fails on server, redirect to login
-        this.router.navigate(['/login']);
-      }
-    });
+    const confirmed = confirm('Are you sure you want to logout?');
+    if (confirmed) {
+      this.authService.logout().subscribe({
+        next: () => {
+          this.router.navigate(['/login']);
+        },
+        error: () => {
+          // Even if logout fails on server, redirect to login
+          this.router.navigate(['/login']);
+        }
+      });
+    }
   }
 
   /**
