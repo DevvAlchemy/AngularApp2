@@ -7,32 +7,64 @@ import { ReservationFormComponent } from './components/reservation-form.componen
 import { AuthGuard } from './guards/auth.guard';
 
 /**
- * Application routing configuration with authentication
+ * RESTORED: Proper routing with AuthGuard for protected routes
  */
 const routes: Routes = [
-  // Public routes
-  { path: 'login', component: LoginComponent },
-  { path: 'signup', component: SignupComponent },
+  // Public routes - NO AUTH GUARD
+  { 
+    path: 'login', 
+    component: LoginComponent,
+    data: { title: 'Login' }
+  },
+  { 
+    path: 'signup', 
+    component: SignupComponent,
+    data: { title: 'Sign Up' }
+  },
   
-  // Protected routes (require authentication)
+  // Protected routes - WITH AUTH GUARD
   { 
     path: 'dashboard', 
     component: ReservationListComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard],
+    data: { title: 'Dashboard' }
+  },
+  { 
+    path: 'reservations', 
+    component: ReservationListComponent,
+    canActivate: [AuthGuard],
+    data: { title: 'Reservations' }
   },
   { 
     path: 'add-reservation', 
     component: ReservationFormComponent,
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard],
+    data: { title: 'Add Reservation' }
+  },
+  { 
+    path: 'edit-reservation', 
+    component: ReservationFormComponent,
+    canActivate: [AuthGuard],
+    data: { title: 'Edit Reservation' }
   },
   
-  // Redirect routes
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: '**', redirectTo: '/login' }
+  // Default redirects
+  { 
+    path: '', 
+    redirectTo: '/login', 
+    pathMatch: 'full' 
+  },
+  { 
+    path: '**', 
+    redirectTo: '/login' 
+  }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes, {
+    enableTracing: false, // Disable for production
+    onSameUrlNavigation: 'reload'
+  })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

@@ -4,20 +4,26 @@
  * Handles login, signup, logout, and session validation
  */
 
+// Enable error reporting for debugging (disable in production)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // CORS headers
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Origin: http://localhost:4200");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Handle preflight
+// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// Database connection
-include_once '../config/database.php';
+// Database connection - FIXED PATH
+include_once 'config/database.php';
 
 $database = new Database();
 $db = $database->getConnection();
@@ -92,7 +98,7 @@ function handleLogin($db) {
             echo json_encode(array(
                 "message" => "Login successful",
                 "user" => array(
-                    "id" => $user['id'],
+                    "id" => (int)$user['id'],
                     "username" => $user['username'],
                     "email" => $user['email'],
                     "first_name" => $user['first_name'],
@@ -182,7 +188,7 @@ function handleSignup($db) {
             http_response_code(201);
             echo json_encode(array(
                 "message" => "User registered successfully",
-                "user_id" => $user_id
+                "user_id" => (int)$user_id
             ));
         } else {
             http_response_code(500);
@@ -250,7 +256,14 @@ function handleVerifySession($db) {
             http_response_code(200);
             echo json_encode(array(
                 "valid" => true,
-                "user" => $user
+                "user" => array(
+                    "id" => (int)$user['id'],
+                    "username" => $user['username'],
+                    "email" => $user['email'],
+                    "first_name" => $user['first_name'],
+                    "last_name" => $user['last_name'],
+                    "role" => $user['role']
+                )
             ));
         } else {
             http_response_code(401);

@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService, SignupRequest } from '../services/auth.service';
 
 /**
- * Signup component with modern dark theme
+ * Clean Signup component - debug code removed
  */
 @Component({
   selector: 'app-signup',
@@ -153,7 +153,7 @@ import { AuthService, SignupRequest } from '../services/auth.service';
         <!-- Footer -->
         <div class="signup-footer">
           <p>Already have an account? 
-            <a href="#" (click)="navigateToLogin()" class="login-link">Sign in here</a>
+            <a routerLink="/login" class="login-link">Sign in here</a>
           </p>
         </div>
       </div>
@@ -425,9 +425,5 @@ export class SignupComponent {
         this.errorMessage = error.error?.message || 'Signup failed. Please try again.';
       }
     });
-  }
-
-  navigateToLogin(): void {
-    this.router.navigate(['/login']);
   }
 }

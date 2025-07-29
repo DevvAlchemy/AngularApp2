@@ -1,23 +1,50 @@
 import { Component, OnInit } from '@angular/core';
 import { ReservationService } from '../services/reservation.service';
+import { AuthService } from '../services/auth.service';
 import { Reservation } from '../models/reservation.model';
 import { Router } from '@angular/router';
 
 /**
- * Component for displaying list of reservations
- * Features filtering, sorting, and responsive design
+ * Enhanced Reservation List Component with Navigation
  */
 @Component({
   selector: 'app-reservation-list',
   template: `
     <div class="reservation-container">
+      <!-- Top Navigation Bar -->
+      <div class="top-navigation">
+        <div class="nav-left">
+          <h1 class="app-title">
+            <span class="icon">🍽️</span>
+            ReserveEase
+          </h1>
+        </div>
+        <div class="nav-right">
+          <span class="user-info">Welcome, {{ getCurrentUserName() }}!</span>
+          <button (click)="logout()" class="logout-btn">
+            <span class="btn-icon">🚪</span>
+            Logout
+          </button>
+        </div>
+      </div>
+
       <!-- Header Section -->
       <div class="header-section">
-        <h1 class="main-title">
-          <span class="icon">🍽️</span>
-          Reservation Dashboard
-        </h1>
-        <p class="subtitle">Manage your restaurant reservations with style</p>
+        <div class="header-content">
+          <h2 class="main-title">
+            <span class="icon">📊</span>
+            Reservation Dashboard
+          </h2>
+          <p class="subtitle">Manage your restaurant reservations with style</p>
+        </div>
+        
+        <!-- Primary Action Button -->
+        <div class="header-actions">
+          <button (click)="createNewReservation()" class="create-btn">
+            <span class="btn-icon">➕</span>
+            Add New Reservation
+          </button>
+        </div>
       </div>
 
       <!-- Controls Section -->
@@ -63,16 +90,21 @@ import { Router } from '@angular/router';
         </div>
       </div>
 
-      <!-- Reservations Grid -->
-      <div *ngIf="!loading && !error" class="reservations-grid">
-        <div *ngIf="filteredReservations.length === 0" class="empty-state">
-          <div class="empty-card">
-            <span class="empty-icon">📅</span>
-            <h3>No reservations found</h3>
-            <p>{{ searchTerm || statusFilter ? 'Try adjusting your filters' : 'No reservations have been made yet' }}</p>
-          </div>
+      <!-- Empty State with Create Button -->
+      <div *ngIf="!loading && !error && filteredReservations.length === 0" class="empty-state">
+        <div class="empty-card">
+          <span class="empty-icon">📅</span>
+          <h3>No reservations found</h3>
+          <p>{{ searchTerm || statusFilter ? 'Try adjusting your filters' : 'No reservations have been made yet' }}</p>
+          <button *ngIf="!searchTerm && !statusFilter" (click)="createNewReservation()" class="create-btn-large">
+            <span class="btn-icon">➕</span>
+            Create Your First Reservation
+          </button>
         </div>
+      </div>
 
+      <!-- Reservations Grid -->
+      <div *ngIf="!loading && !error && filteredReservations.length > 0" class="reservations-grid">
         <div *ngFor="let reservation of filteredReservations; trackBy: trackByReservation" 
              class="reservation-card"
              [class.confirmed]="reservation.status === 'confirmed'"
@@ -174,6 +206,18 @@ import { Router } from '@angular/router';
           <span class="stat-label">Cancelled</span>
         </div>
       </div>
+
+      <!-- Quick Actions Footer -->
+      <div class="quick-actions" *ngIf="!loading && !error">
+        <button (click)="createNewReservation()" class="quick-action-btn">
+          <span class="btn-icon">➕</span>
+          New Reservation
+        </button>
+        <button (click)="loadReservations()" class="quick-action-btn">
+          <span class="btn-icon">🔄</span>
+          Refresh Data
+        </button>
+      </div>
     </div>
   `,
   styleUrls: ['./reservation-list.component.css']
@@ -186,9 +230,9 @@ export class ReservationListComponent implements OnInit {
   searchTerm = '';
   statusFilter = '';
 
-  // FIXED CONSTRUCTOR - proper syntax
   constructor(
     private reservationService: ReservationService,
+    private authService: AuthService,
     private router: Router
   ) { }
 
@@ -216,6 +260,13 @@ export class ReservationListComponent implements OnInit {
         this.filteredReservations = [];
       }
     });
+  }
+
+  /**
+   * Navigate to create new reservation
+   */
+  createNewReservation(): void {
+    this.router.navigate(['/add-reservation']);
   }
 
   /**
@@ -269,6 +320,29 @@ export class ReservationListComponent implements OnInit {
         }
       });
     }
+  }
+
+  /**
+   * Get current user name
+   */
+  getCurrentUserName(): string {
+    const user = this.authService.getCurrentUser();
+    return user ? `${user.first_name} ${user.last_name}` : 'User';
+  }
+
+  /**
+   * Logout user
+   */
+  logout(): void {
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/login']);
+      },
+      error: () => {
+        // Even if logout fails on server, redirect to login
+        this.router.navigate(['/login']);
+      }
+    });
   }
 
   /**

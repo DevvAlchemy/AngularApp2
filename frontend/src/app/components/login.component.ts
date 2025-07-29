@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService, LoginRequest } from '../services/auth.service';
 
 /**
- * Login component with modern dark theme
+ * Enhanced Login component with proper redirection
  */
 @Component({
   selector: 'app-login',
@@ -74,7 +74,7 @@ import { AuthService, LoginRequest } from '../services/auth.service';
         <!-- Footer -->
         <div class="login-footer">
           <p>Don't have an account? 
-            <a href="#" (click)="navigateToSignup()" class="signup-link">Sign up here</a>
+            <a routerLink="/signup" class="signup-link">Sign up here</a>
           </p>
           
           <!-- Demo Credentials -->
@@ -319,7 +319,7 @@ import { AuthService, LoginRequest } from '../services/auth.service';
     }
   `]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   credentials: LoginRequest = {
     username: '',
     password: ''
@@ -327,11 +327,18 @@ export class LoginComponent {
   
   loading = false;
   errorMessage = '';
+  returnUrl = '';
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+    // Get return URL from route parameters or default to dashboard
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+  }
 
   onLogin(): void {
     this.loading = true;
@@ -340,21 +347,22 @@ export class LoginComponent {
     this.authService.login(this.credentials).subscribe({
       next: (response) => {
         this.loading = false;
-        console.log('Login successful');
-        this.router.navigate(['/dashboard']);
+        console.log('✅ Login successful');
+        // Redirect to the intended page or dashboard
+        this.router.navigateByUrl(this.returnUrl);
       },
       error: (error) => {
         this.loading = false;
+        console.error('❌ Login error:', error);
         this.errorMessage = error.error?.message || 'Login failed. Please try again.';
       }
     });
   }
 
-  navigateToSignup(): void {
-    this.router.navigate(['/signup']);
-  }
+  // REMOVED navigateToSignup() method - using routerLink instead
 
   fillDemoCredentials(type: 'admin' | 'manager' | 'demo'): void {
+    console.log('🎭 Filling demo credentials for:', type);
     switch(type) {
       case 'admin':
         this.credentials = { username: 'admin', password: 'admin123' };

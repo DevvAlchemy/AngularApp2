@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Observable, map, take } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
 /**
- * Auth guard to protect routes that require authentication
+ * Clean AuthGuard - Protects routes that require authentication
  */
 @Injectable({
   providedIn: 'root'
@@ -16,14 +16,32 @@ export class AuthGuard implements CanActivate {
     private router: Router
   ) {}
 
-  canActivate(): Observable<boolean> {
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): Observable<boolean> | boolean {
+    
+    const {url} = state;
+    
+    // Allow public routes without any checks
+    const publicRoutes = ['/login', '/signup'];
+    const isPublicRoute = publicRoutes.some(route => url.startsWith(route));
+    
+    if (isPublicRoute) {
+      return true;
+    }
+    
+    // For protected routes, check authentication
     return this.authService.isAuthenticated$.pipe(
       take(1),
       map(isAuthenticated => {
         if (isAuthenticated) {
           return true;
         } else {
-          this.router.navigate(['/login']);
+          // Store the attempted URL for redirecting after login
+          this.router.navigate(['/login'], { 
+            queryParams: { returnUrl: state.url }
+          });
           return false;
         }
       })

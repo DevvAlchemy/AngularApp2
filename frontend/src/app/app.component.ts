@@ -1,232 +1,140 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router, NavigationEnd, NavigationStart, NavigationCancel, NavigationError } from '@angular/router';
+import { AuthService } from './services/auth.service';
 
 /**
- * Main application component
- * Root component that holds the entire application
+ * Clean App Component with optional debug toggle
  */
 @Component({
   selector: 'app-root',
   template: `
-    <div class="app-container">
-      <!-- Navigation Header -->
-      <nav class="nav-header">
-        <div class="nav-content">
-          <div class="logo-section">
-            <span class="logo-icon">🍽️</span>
-            <h2 class="logo-text">ReserveEase</h2>
-          </div>
-          
-          <div class="nav-links">
-            <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-              <span class="link-icon">📋</span>
-              Reservations
-            </a>
-            <a routerLink="/add-reservation" class="nav-link" routerLinkActive="active">
-              <span class="link-icon">➕</span>
-              Add New
-            </a>
-            <a href="#" class="nav-link">
-              <span class="link-icon">📊</span>
-              Analytics
-            </a>
-          </div>
+    <!-- Debug Panel (only show if debug is enabled) -->
+    <div *ngIf="debugMode" style="position: fixed; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); color: lime; z-index: 99999; padding: 10px; font-family: monospace; font-size: 11px; border-bottom: 2px solid #00ff00;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong>🐛 DEBUG MODE</strong><br>
+          URL: {{ currentUrl }} | Nav Count: {{ navigationCount }} | Auth: {{ authState }}<br>
+          Last: {{ lastNavigation }}
         </div>
-      </nav>
-
-      <!-- Main Content Area -->
-      <main class="main-content">
-        <router-outlet></router-outlet>
-      </main>
-
-      <!-- Footer -->
-      <footer class="app-footer">
-        <div class="footer-content">
-          <p>&copy; 2025 ReserveEase - Restaurant Reservation System</p>
-          <p class="tech-stack">Built with Angular & PHP</p>
-        </div>
-      </footer>
+        <button (click)="toggleDebug()" style="background: red; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px;">
+          Close Debug
+        </button>
+      </div>
+      <div style="margin-top: 5px; max-height: 60px; overflow-y: auto;">
+        <div *ngFor="let event of lastEvents" style="color: yellow; font-size: 10px;">{{ event }}</div>
+      </div>
+    </div>
+    
+    <!-- Debug Toggle Button (always visible in bottom right) -->
+    <button 
+      *ngIf="!debugMode"
+      (click)="toggleDebug()" 
+      style="position: fixed; bottom: 20px; right: 20px; background: #333; color: #00ff00; border: 1px solid #00ff00; padding: 8px 12px; cursor: pointer; border-radius: 20px; font-size: 11px; z-index: 9999; font-family: monospace;">
+      🐛 Debug
+    </button>
+    
+    <!-- Main App Content -->
+    <div [style.margin-top]="debugMode ? '120px' : '0px'">
+      <router-outlet></router-outlet>
     </div>
   `,
-  styles: [`
-    /* Global App Styles */
-    .app-container {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #21262d 100%);
-    }
-
-    /* Navigation Header */
-    .nav-header {
-      background: rgba(13, 17, 23, 0.95);
-      border-bottom: 1px solid rgba(88, 166, 255, 0.2);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    .nav-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 70px;
-    }
-
-    .logo-section {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo-icon {
-      font-size: 2rem;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-    }
-
-    .logo-text {
-      font-size: 1.8rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #58a6ff, #a5f3fc);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin: 0;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 30px;
-      align-items: center;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      color: #8b949e;
-      text-decoration: none;
-      border-radius: 12px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    .nav-link:hover {
-      color: #58a6ff;
-      background: rgba(88, 166, 255, 0.1);
-      transform: translateY(-2px);
-    }
-
-    .nav-link.active {
-      color: #58a6ff;
-      background: rgba(88, 166, 255, 0.15);
-    }
-
-    .nav-link.active::before {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 20px;
-      right: 20px;
-      height: 2px;
-      background: linear-gradient(90deg, #58a6ff, #a5f3fc);
-      border-radius: 1px;
-    }
-
-    .link-icon {
-      font-size: 1.1rem;
-    }
-
-    /* Main Content */
-    .main-content {
-      flex: 1;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
-      padding: 0;
-    }
-
-    /* Footer */
-    .app-footer {
-      background: rgba(13, 17, 23, 0.95);
-      border-top: 1px solid rgba(88, 166, 255, 0.2);
-      padding: 20px 0;
-      margin-top: auto;
-    }
-
-    .footer-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 20px;
-      text-align: center;
-      color: #8b949e;
-    }
-
-    .footer-content p {
-      margin: 5px 0;
-    }
-
-    .tech-stack {
-      font-size: 0.9rem;
-      opacity: 0.7;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .nav-content {
-        padding: 0 15px;
-        height: 60px;
-      }
-      
-      .logo-text {
-        font-size: 1.5rem;
-      }
-      
-      .nav-links {
-        gap: 15px;
-      }
-      
-      .nav-link {
-        padding: 8px 12px;
-        font-size: 0.9rem;
-      }
-      
-      .link-icon {
-        font-size: 1rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .nav-content {
-        flex-direction: column;
-        height: auto;
-        padding: 15px;
-        gap: 15px;
-      }
-      
-      .nav-links {
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      
-      .nav-link {
-        padding: 6px 10px;
-        font-size: 0.8rem;
-      }
-    }
-  `]
+  styles: []
 })
-export class AppComponent {
-  title = 'ReserveEase - Restaurant Reservation System';
+export class AppComponent implements OnInit {
+  title = 'AngularApp2';
+  
+  // Debug toggle
+  debugMode = false; // Start with debug OFF
+  
+  // Debug properties
+  currentUrl = '';
+  navigationCount = 0;
+  lastNavigation = '';
+  authState = 'unknown';
+  lastEvents: string[] = [];
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {
+    // Only initialize tracking if debug is enabled
+    this.initializeTracking();
+  }
+
+  ngOnInit(): void {
+    this.currentUrl = this.router.url;
+    
+    // Check for debug mode in localStorage (persists across page reloads)
+    const savedDebugMode = localStorage.getItem('debug-mode');
+    if (savedDebugMode === 'true') {
+      this.debugMode = true;
+    }
+  }
+
+  toggleDebug(): void {
+    this.debugMode = !this.debugMode;
+    
+    // Save debug preference
+    localStorage.setItem('debug-mode', this.debugMode.toString());
+    
+    if (this.debugMode) {
+      this.addEvent('🐛 Debug mode enabled');
+      console.log('🐛 Debug mode enabled');
+    } else {
+      console.log('🐛 Debug mode disabled');
+    }
+  }
+
+  private initializeTracking(): void {
+    // Track router events
+    this.router.events.subscribe(event => {
+      if (!this.debugMode) {
+        return;
+      } // Only track if debug is on
+      
+      if (event instanceof NavigationStart) {
+        this.navigationCount++;
+        this.addEvent(`🚀 NAV START: ${event.url}`);
+      }
+      
+      if (event instanceof NavigationEnd) {
+        this.currentUrl = event.url;
+        this.lastNavigation = `END: ${event.url}`;
+        this.addEvent(`✅ NAV END: ${event.url}`);
+      }
+      
+      if (event instanceof NavigationCancel) {
+        this.addEvent(`❌ NAV CANCEL: ${event.url} - ${event.reason}`);
+      }
+      
+      if (event instanceof NavigationError) {
+        this.addEvent(`💥 NAV ERROR: ${event.url} - ${event.error}`);
+      }
+    });
+
+    // Track auth state changes
+    this.authService.isAuthenticated$.subscribe(isAuth => {
+      this.authState = isAuth ? 'authenticated' : 'not-authenticated';
+      if (this.debugMode) {
+        this.addEvent(`🔐 Auth changed: ${isAuth}`);
+      }
+    });
+  }
+
+  private addEvent(message: string): void {
+    if (!this.debugMode) {
+      return;
+    }
+    
+    const timestamp = new Date().toLocaleTimeString();
+    const event = `[${timestamp}] ${message}`;
+    this.lastEvents.unshift(event);
+    
+    // Keep only last 10 events
+    if (this.lastEvents.length > 10) {
+      this.lastEvents.pop();
+    }
+    
+    console.log('🐛 DEBUG:', event);
+  }
 }

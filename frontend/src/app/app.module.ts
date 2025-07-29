@@ -9,6 +9,7 @@ import { LoginComponent } from './components/login.component';
 import { SignupComponent } from './components/signup.component';
 import { ReservationListComponent } from './components/reservation-list.component';
 import { ReservationFormComponent } from './components/reservation-form.component';
+import { RouterModule } from '@angular/router';
 
 /**
  * Main application module
@@ -26,7 +27,8 @@ import { ReservationFormComponent } from './components/reservation-form.componen
     BrowserModule,                   // Required for running in browser
     AppRoutingModule,                // Routing configuration
     HttpClientModule,                // For HTTP requests to PHP backend
-    FormsModule                      // For two-way data binding (ngModel)
+    FormsModule,                      // For two-way data binding (ngModel)
+    RouterModule
   ],
   providers: [],                     // Services are provided in root via @Injectable
   bootstrap: [AppComponent]          // Component to bootstrap when app starts

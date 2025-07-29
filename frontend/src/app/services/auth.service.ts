@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
@@ -35,7 +35,8 @@ export interface AuthResponse {
 }
 
 /**
- * Authentication service for managing user login, signup, and session
+ * ULTRA MINIMAL AuthService - Does NOTHING automatically
+ * This will help us identify if AuthService is causing the redirect
  */
 @Injectable({
   providedIn: 'root'
@@ -43,11 +44,10 @@ export interface AuthResponse {
 export class AuthService {
   private apiUrl = 'http://localhost/AngularApp2/backend/api/auth.php';
   
-  // Current user state
+  // Basic state - NO AUTOMATIC INITIALIZATION
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
   
-  // Authentication state
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
@@ -55,29 +55,32 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    // Check for existing session on service initialization
-    this.checkExistingSession();
+    console.log('🔥 ULTRA MINIMAL AuthService constructor');
+    console.log('🚫 NO AUTOMATIC ACTIONS WILL BE TAKEN');
+    console.log('⚠️ This service will do NOTHING unless explicitly called');
+    
+    // ABSOLUTELY NO AUTOMATIC SESSION CHECKING
+    // ABSOLUTELY NO AUTOMATIC REDIRECTS
+    // ABSOLUTELY NO AUTOMATIC STATE CHANGES
   }
 
   /**
    * User login
    */
   login(credentials: LoginRequest): Observable<AuthResponse> {
+    console.log('🔐 LOGIN CALLED for:', credentials.username);
+    
     return this.http.post<AuthResponse>(`${this.apiUrl}?action=login`, credentials)
       .pipe(
         tap(response => {
-          // Store token and user data
+          console.log('✅ LOGIN SUCCESS:', response);
           localStorage.setItem('auth_token', response.token);
           localStorage.setItem('user_data', JSON.stringify(response.user));
-          
-          // Update subjects
           this.currentUserSubject.next(response.user);
           this.isAuthenticatedSubject.next(true);
-          
-          console.log('Login successful:', response.user);
         }),
         catchError(error => {
-          console.error('Login error:', error);
+          console.error('❌ LOGIN ERROR:', error);
           throw error;
         })
       );
@@ -87,13 +90,15 @@ export class AuthService {
    * User signup
    */
   signup(userData: SignupRequest): Observable<any> {
+    console.log('📝 SIGNUP CALLED for:', userData.username);
+    
     return this.http.post(`${this.apiUrl}?action=signup`, userData)
       .pipe(
         tap(response => {
-          console.log('Signup successful:', response);
+          console.log('✅ SIGNUP SUCCESS:', response);
         }),
         catchError(error => {
-          console.error('Signup error:', error);
+          console.error('❌ SIGNUP ERROR:', error);
           throw error;
         })
       );
@@ -103,79 +108,30 @@ export class AuthService {
    * User logout
    */
   logout(): Observable<any> {
+    console.log('🚪 LOGOUT CALLED');
     const token = this.getToken();
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    
+    if (!token) {
+      this.clearSession();
+      return of({ message: 'Logged out' });
+    }
 
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.post(`${this.apiUrl}?action=logout`, {}, { headers })
       .pipe(
-        tap(() => {
+        tap(() => this.clearSession()),
+        catchError(() => {
           this.clearSession();
-        }),
-        catchError(error => {
-          // Even if logout fails on server, clear local session
-          this.clearSession();
-          throw error;
+          return of({ message: 'Logged out locally' });
         })
       );
-  }
-
-  /**
-   * Verify current session
-   */
-  verifySession(): Observable<any> {
-    const token = this.getToken();
-    if (!token) {
-      return new Observable(observer => {
-        observer.next({ valid: false });
-        observer.complete();
-      });
-    }
-
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-
-    return this.http.get(`${this.apiUrl}?action=verify`, { headers })
-      .pipe(
-        tap(response => {
-          if (response && (response as any).valid) {
-            this.currentUserSubject.next((response as any).user);
-            this.isAuthenticatedSubject.next(true);
-          } else {
-            this.clearSession();
-          }
-        }),
-        catchError(error => {
-          this.clearSession();
-          throw error;
-        })
-      );
-  }
-
-  /**
-   * Check for existing session on app start
-   */
-  private checkExistingSession(): void {
-    const token = this.getToken();
-    const userData = this.getUserData();
-
-    if (token && userData) {
-      this.verifySession().subscribe({
-        next: (response) => {
-          if (response.valid) {
-            this.currentUserSubject.next(response.user);
-            this.isAuthenticatedSubject.next(true);
-          }
-        },
-        error: () => {
-          this.clearSession();
-        }
-      });
-    }
   }
 
   /**
    * Clear session data
    */
   private clearSession(): void {
+    console.log('🧹 CLEARING SESSION');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_data');
     this.currentUserSubject.next(null);
@@ -223,6 +179,7 @@ export class AuthService {
    * Navigate to login page
    */
   redirectToLogin(): void {
+    console.log('🔄 REDIRECT TO LOGIN CALLED');
     this.router.navigate(['/login']);
   }
 
@@ -230,6 +187,7 @@ export class AuthService {
    * Navigate to dashboard
    */
   redirectToDashboard(): void {
+    console.log('🔄 REDIRECT TO DASHBOARD CALLED');
     this.router.navigate(['/dashboard']);
   }
 }
