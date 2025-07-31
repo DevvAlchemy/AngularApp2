@@ -84,7 +84,9 @@ export class AuthService {
    */
   private verifySessionQuietly(): void {
     const token = this.getToken();
-    if (!token) return;
+    if (!token) {
+      return;
+    }
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
